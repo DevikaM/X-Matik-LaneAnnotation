@@ -54,6 +54,7 @@ MainWindow::MainWindow(QWidget *parent) :
     this->addAction(decreaseBrushAction);
 
 
+    _frameRate = 1;
     _vidFrames = new std::vector<cv::Mat>;
     _frameIndex = 0;
     _release = false;
@@ -104,11 +105,19 @@ int MainWindow::getFrames(cv::VideoCapture vid, int frameRate, int fileName,std:
 {
     _fileName = fileName;
     _filePath = FilePath;
-
+    _frameRate = frameRate;
+    ui->FrameRateTextBox->text() = _frameRate;
     /*************************************/
     _posFilePath = QDir::cleanPath(QString::fromStdString(FilePath) + QDir::separator() + "pos").toStdString();
     _negFilePath =QDir::cleanPath(QString::fromStdString(FilePath) + QDir::separator() + "neg").toStdString();
     _rawFilePath = QDir::cleanPath(QString::fromStdString(FilePath) + QDir::separator() + "raw").toStdString();
+
+    if(!QDir(QString::fromStdString(_posFilePath)).exists())
+        QDir(QString::fromStdString(_posFilePath)).mkpath(".");
+    if(!QDir(QString::fromStdString(_negFilePath)).exists())
+        QDir(QString::fromStdString(_negFilePath)).mkpath(".");
+    if(!QDir(QString::fromStdString(_rawFilePath)).exists())
+        QDir(QString::fromStdString(_rawFilePath)).mkpath(".");
 
     _posTextFile = (QDir(QString::fromStdString(_posFilePath)).filePath("pos.txt")).toStdString();
     _negTextFile = (QDir(QString::fromStdString(_negFilePath)).filePath("neg.txt")).toStdString();
@@ -134,7 +143,7 @@ int MainWindow::getFrames(cv::VideoCapture vid, int frameRate, int fileName,std:
 
             for(int frameIndex = 0; frameIndex < totalVidFrame; frameIndex++)
             {
-                if(grabFrame == 0)
+               /* if(grabFrame == 0)
                 {
                     cv::Mat tempFrame;
                     vid.set(cv::CAP_PROP_POS_FRAMES, frameIndex);
@@ -146,7 +155,14 @@ int MainWindow::getFrames(cv::VideoCapture vid, int frameRate, int fileName,std:
                 {
                     grabFrame = -1;
                 }
-                grabFrame++;
+                grabFrame++;*/
+
+                cv::Mat tempFrame;
+                vid.set(cv::CAP_PROP_POS_FRAMES, frameIndex);
+                vid.grab();
+                vid.retrieve(tempFrame);
+                _vidFrames->push_back(tempFrame);
+                fileName++;
             }
 
         }
@@ -168,7 +184,8 @@ void MainWindow::start()
 {
     CVImage* image = (CVImage*) ui->mdiArea->activeSubWindow()->widget();
     image->showImage(_vidFrames->at(_frameIndex));
-    _frameIndex++;
+    //_frameIndex++;
+    //_frameIndex+=_frameRate;
     ui->mdiArea->activeSubWindow()->setWidget(image);
 }
 
@@ -247,10 +264,12 @@ void MainWindow::on_saveButton_clicked()
 
     _fileName++;
 
-    if(_frameIndex < _vidFrames->size())
+    if(_frameIndex + _frameRate < _vidFrames->size())
     {
+        _frameIndex+=_frameRate;
          temp->showImage(_vidFrames->at(_frameIndex));
-         _frameIndex++;
+         //_frameIndex++;
+
          ui->mdiArea->activeSubWindow()->setWidget(temp);
          if (ui->thresholdBar->value() > 1)
              this->on_thresholdBar_sliderMoved(ui->thresholdBar->value());
@@ -264,16 +283,19 @@ void MainWindow::on_saveButton_clicked()
     pos.close();
     raw.close();
 
+
+
     //ui->thresholdBar->setValue(1);
 }
 
 void MainWindow::on_skipButton_clicked()
 {
     CVImage* temp = (CVImage*) ui->mdiArea->activeSubWindow()->widget();
-    if(_frameIndex < _vidFrames->size())
+    if(_frameIndex + _frameRate  < _vidFrames->size())
     {
+        _frameIndex+=_frameRate;
          temp->showImage(_vidFrames->at(_frameIndex));
-         _frameIndex++;
+         //_frameIndex++;
          //_vidFrames->erase(_vidFrames->begin());
          ui->mdiArea->activeSubWindow()->setWidget(temp);
          if (ui->thresholdBar->value() > 1)
@@ -323,10 +345,11 @@ void MainWindow::on_saveButton_2_clicked()
 
     _fileName++;
 
-    if(_frameIndex < _vidFrames->size())
+    if(_frameIndex + _frameRate < _vidFrames->size())
     {
+        _frameIndex+=_frameRate;
          temp->showImage(_vidFrames->at(_frameIndex));
-         _frameIndex++;
+         //_frameIndex++;
          //_vidFrames->erase(_vidFrames->begin());
          ui->mdiArea->activeSubWindow()->setWidget(temp);
          if (ui->thresholdBar->value() > 1)
@@ -439,4 +462,10 @@ void MainWindow::on_ResetButton_clicked()
     CVImage* temp = (CVImage*) ui->mdiArea->activeSubWindow()->widget();
     temp->reset();
     ui->mdiArea->activeSubWindow()->setWidget(temp);
+}
+
+void MainWindow::on_FrameRateButton_clicked()
+{
+    if (ui->FrameRateTextBox->text().toStdString() != "")
+        _frameRate = atoi((ui->FrameRateTextBox->text().toStdString()).c_str());
 }

@@ -74,6 +74,8 @@ private slots:
     void decreaseBrush();
     void on_ResetButton_clicked();
 
+    void on_FrameRateButton_clicked();
+
 private:
     int _prevThreshVal;
     int _prevBrushVal;
@@ -89,6 +91,7 @@ private:
     int _fileName;
     int _frameIndex;
     bool _release;
+    int _frameRate;
 
 };
 
