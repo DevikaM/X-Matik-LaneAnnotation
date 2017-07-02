@@ -45,7 +45,7 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
     void setImage(CVImage* img);
-    int getFrames(cv::VideoCapture vid, int frameRate, int fileName, std::string FilePath);
+    int getFrames(cv::VideoCapture vid, int frameRate, int fileName, std::string FilePath,int topCrop, int bottomCrop);
     void start();
     void closeWin();
     void ResetWindow();

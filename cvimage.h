@@ -42,7 +42,7 @@ public slots:
     bool undo();
     void save(std::string filePath, bool raw = false);
     void saveNeg(std::string filePath);
-    void drawCircle(QRectF rect, bool onClick = false);
+    void drawCircle(QRectF rect, bool onClick = false, bool cancelMove = false);
     void drawCursor(QRectF rect);
     void reset();
 protected:

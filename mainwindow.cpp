@@ -65,7 +65,7 @@ MainWindow::MainWindow(QWidget *parent) :
     cv::Mat temp(130, 220, CV_8UC3, cv::Scalar(255,255,255));
     imageWidget->showImage(temp);
     QRectF rect(110.0, 25.0, 25.0, 25.0);
-    imageWidget->drawCircle(rect);
+    imageWidget->drawCircle(rect,false,true);
     ui->mdiArea_2->addSubWindow(imageWidget,Qt::FramelessWindowHint);
     /*CANT BE USED WITH DYNAMIC FRAME RATE*/
     ui->seeNextButton->hide();
@@ -81,7 +81,7 @@ void MainWindow::ResetWindow(){
     _release = false;
     _prevThreshVal = ui->thresholdBar->value();
     _prevBrushVal = ui->penWidthBar->value();
-    on_penWidthBar_sliderMoved(1);
+
 }
 
 void MainWindow::increaseThresh()
@@ -101,8 +101,9 @@ void MainWindow::decreaseBrush()
 {
     ui->penWidthBar->triggerAction(QAbstractSlider::SliderSingleStepSub);
 }
-int MainWindow::getFrames(cv::VideoCapture vid, int frameRate, int fileName,std::string FilePath)
+int MainWindow::getFrames(cv::VideoCapture vid, int frameRate, int fileName,std::string FilePath,int topCrop, int bottomCrop)
 {
+    this->ResetWindow();
     _fileName = fileName;
     _filePath = FilePath;
     _frameRate = frameRate;
@@ -139,7 +140,7 @@ int MainWindow::getFrames(cv::VideoCapture vid, int frameRate, int fileName,std:
         try
         {
             int totalVidFrame = (int) vid.get(CV_CAP_PROP_FRAME_COUNT);
-            int grabFrame = 0;
+            //int grabFrame = 0;
 
             for(int frameIndex = 0; frameIndex < totalVidFrame; frameIndex++)
             {
@@ -157,11 +158,13 @@ int MainWindow::getFrames(cv::VideoCapture vid, int frameRate, int fileName,std:
                 }
                 grabFrame++;*/
 
-                cv::Mat tempFrame;
+                cv::Mat tempFrame, cropped;
                 vid.set(cv::CAP_PROP_POS_FRAMES, frameIndex);
                 vid.grab();
                 vid.retrieve(tempFrame);
-                _vidFrames->push_back(tempFrame);
+                cv::Rect size(0,topCrop, tempFrame.size().width,((tempFrame.size().height-topCrop)-bottomCrop));
+                cropped = cv::Mat(tempFrame, size).clone();
+                _vidFrames->push_back(cropped);
                 fileName++;
             }
 
@@ -268,8 +271,6 @@ void MainWindow::on_saveButton_clicked()
     {
         _frameIndex+=_frameRate;
          temp->showImage(_vidFrames->at(_frameIndex));
-         //_frameIndex++;
-
          ui->mdiArea->activeSubWindow()->setWidget(temp);
          if (ui->thresholdBar->value() > 1)
              this->on_thresholdBar_sliderMoved(ui->thresholdBar->value());
@@ -283,9 +284,6 @@ void MainWindow::on_saveButton_clicked()
     pos.close();
     raw.close();
 
-
-
-    //ui->thresholdBar->setValue(1);
 }
 
 void MainWindow::on_skipButton_clicked()
@@ -308,7 +306,6 @@ void MainWindow::on_skipButton_clicked()
         this->close();
     }
 
-    //ui->thresholdBar->setValue(1);
 }
 
 //SKIP BUTTON

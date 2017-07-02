@@ -49,16 +49,7 @@ void CVImage::scaleImage(QSize size)
 
 void CVImage::applyThreshold(int thresh)
 {
-    //    _imgVec->push_back(_qimage);
-   // cv::Mat tmp(_qimage.height(),_qimage.width(),CV_8UC3,(uchar*)_qimage.bits(),_qimage.bytesPerLine());
-    //cv::Mat result;
-    //cvtColor(tmp, result,CV_BGR2RGB);
-    //cvtColor(result,_tmp,CV_BGR2RGB);
-    //cv::namedWindow("image", cv::WINDOW_AUTOSIZE);
-    //cv::imshow("image",result);
-    //cv::waitKey(1);
     cv::threshold(_tmp,_tmpGray, thresh, 255, 0);
-    //ThresholdOP(_tmpRaw,_tmpGray,48,20,thresh);
     _qimage = QImage(_tmpGray.data, _tmpGray.cols, _tmpGray.rows, _tmpGray.cols*3, QImage::Format_RGB888);
     repaint();
     _lastThresh = thresh;
@@ -69,7 +60,6 @@ void CVImage::mousePressEvent(QMouseEvent *event)
 {
     _drawing = true;
     _prevPoint = event->pos();
-    //_imgVec->push_back(_qimage);
     QRectF rect(event->pos().x() - (_penWidth/2 ), event->pos().y() - (_penWidth/2), _penWidth,_penWidth);
     drawCircle(rect, true);
 }
@@ -87,8 +77,6 @@ void CVImage::mouseMoveEvent(QMouseEvent *event)
     else if(!_drawing)
     {
         _qimage = _imgVec->back();
-        /*if(_lastThresh > 0)
-            applyThreshold(_lastThresh);*/
         QRectF rect(event->pos().x() - (_penWidth/2 ), event->pos().y() - (_penWidth/2), _penWidth,_penWidth);
         drawCursor(rect);
 
@@ -102,11 +90,8 @@ void CVImage::mouseReleaseEvent(QMouseEvent *event)
     if (event->button() == Qt::LeftButton && _drawing){
         drawTo(event->pos());
         _drawing = false;
-        /*if(_lastThresh > 0)
-            applyThreshold(_lastThresh);*/
         _imgVec->push_back(_qimage);
     }
-     //this->setMouseTracking(true);
 
 }
 void CVImage::drawTo(const QPoint &point)
@@ -126,8 +111,10 @@ void CVImage::drawCursor(QRectF rect){
     repaint();
 
 }
-void CVImage::drawCircle(QRectF rect, bool onClick)
+void CVImage::drawCircle(QRectF rect, bool onClick, bool cancelMove)
 {
+    if(cancelMove)
+        this->setMouseTracking(false);
     if(!onClick){
         _imgVec->push_back(_qimage);
         _qimage = _imgVec->front();
@@ -162,7 +149,6 @@ bool CVImage::undo()
 {
     if(_imgVec->size() == 1)
        _qimage = QImage(_tmp.data, _tmp.cols, _tmp.rows, _tmp.cols*3, QImage::Format_RGB888);
-        //_imgVec->at(0);
     else{
         _qimage = _imgVec->back();
         _imgVec->pop_back();
@@ -178,7 +164,8 @@ void CVImage::save(std::string filePath, bool raw)
         cv::imwrite(filePath,_tmpRaw);
     else{
         QString path = QString::fromStdString(filePath);
-        _qimage.save(path);
+        _imgVec->back().save(path);
+        //_qimage.save(path);
     }
 }
 

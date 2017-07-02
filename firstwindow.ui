@@ -18,7 +18,7 @@
     <property name="geometry">
      <rect>
       <x>80</x>
-      <y>230</y>
+      <y>260</y>
       <width>461</width>
       <height>101</height>
      </rect>
@@ -83,8 +83,8 @@
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>130</y>
+      <x>30</x>
+      <y>195</y>
       <width>551</width>
       <height>66</height>
      </rect>
@@ -114,12 +114,58 @@
      <rect>
       <x>30</x>
       <y>90</y>
+      <width>111</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Initial Frame Rate</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_5">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>143</y>
+      <width>60</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Top Crop</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="crop_top">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>143</y>
+      <width>51</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_6">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>171</y>
       <width>81</width>
       <height>16</height>
      </rect>
     </property>
     <property name="text">
-     <string>Frame Rate</string>
+     <string>Bottom Crop</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="crop_bottom">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>171</y>
+      <width>51</width>
+      <height>20</height>
+     </rect>
     </property>
    </widget>
   </widget>
