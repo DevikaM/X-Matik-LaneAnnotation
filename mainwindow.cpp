@@ -20,8 +20,13 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QAction *skipAction = new QAction(this);
     skipAction->setShortcut(Qt::Key_S| Qt::CTRL);
-    connect(skipAction, SIGNAL(triggered()), this, SLOT(on_saveButton_2_clicked()));
+    connect(skipAction, SIGNAL(triggered()), this, SLOT(on_skipButton_clicked()));
     this->addAction(skipAction);
+
+    QAction *skipActionAlt = new QAction(this);
+    skipActionAlt->setShortcut(Qt::Key_S| Qt::SHIFT);
+    connect(skipActionAlt, SIGNAL(triggered()), this, SLOT(on_skipButton_clicked()));
+    this->addAction(skipActionAlt);
 
     QAction *rawAction = new QAction(this);
     rawAction->setShortcut(Qt::Key_R| Qt::CTRL);
@@ -30,7 +35,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QAction *negativeAction = new QAction(this);
     negativeAction->setShortcut(Qt::Key_N);
-    connect(negativeAction, SIGNAL(triggered()), this, SLOT(on_skipButton_clicked()));
+    connect(negativeAction, SIGNAL(triggered()), this, SLOT(on_saveButton_2_clicked()));
     this->addAction(negativeAction);
 
     QAction *increaseThreshAction = new QAction(this);
@@ -308,7 +313,7 @@ void MainWindow::on_skipButton_clicked()
 
 }
 
-//SKIP BUTTON
+//NEG BUTTON
 void MainWindow::on_saveButton_2_clicked()
 {
     CVImage* temp = (CVImage*) ui->mdiArea->activeSubWindow()->widget();
@@ -465,4 +470,12 @@ void MainWindow::on_FrameRateButton_clicked()
 {
     if (ui->FrameRateTextBox->text().toStdString() != "")
         _frameRate = atoi((ui->FrameRateTextBox->text().toStdString()).c_str());
+}
+
+void MainWindow::on_brushColorButton_clicked()
+{
+    QColor newColor = QColorDialog::getColor();
+    CVImage* temp = (CVImage*) ui->mdiArea->activeSubWindow()->widget();
+    temp->setPenColor(newColor);
+    ui->mdiArea->activeSubWindow()->setWidget(temp);
 }

@@ -25,6 +25,7 @@ void CVImage::showImage(const cv::Mat& image)
     cvtColor(_tmp,_tmpGray, CV_RGB2GRAY);
     cvtColor(_tmpGray, _tmp, CV_GRAY2RGB);
 
+
     assert(_tmp.isContinuous());
     _qimage = QImage(_tmp.data, _tmp.cols, _tmp.rows, _tmp.cols*3, QImage::Format_RGB888);
     this->setFixedSize(image.cols, image.rows);
@@ -106,7 +107,7 @@ void CVImage::drawTo(const QPoint &point)
 void CVImage::drawCursor(QRectF rect){
 
     QPainter painter(&_qimage);
-    painter.setPen(QPen(_color, 2, Qt::SolidLine, Qt::RoundCap,Qt::RoundJoin));
+    painter.setPen(QPen(_penColor, 2, Qt::SolidLine, Qt::RoundCap,Qt::RoundJoin));
     painter.drawEllipse(rect);
     repaint();
 
@@ -131,6 +132,10 @@ void CVImage::drawCircle(QRectF rect, bool onClick, bool cancelMove)
 void CVImage::setColor(QColor color)
 {
     _color = color;
+}
+void CVImage::setPenColor(QColor color)
+{
+    _penColor = color;
 }
 void CVImage::setWidth(int width)
 {
@@ -160,9 +165,9 @@ bool CVImage::undo()
 
 void CVImage::save(std::string filePath, bool raw)
 {
-    if (raw)
+    if (raw){
         cv::imwrite(filePath,_tmpRaw);
-    else{
+    }else{
         QString path = QString::fromStdString(filePath);
         _imgVec->back().save(path);
         //_qimage.save(path);

@@ -20,6 +20,7 @@ class CVImage : public QWidget
     Q_OBJECT
 public:
     explicit CVImage(QWidget *parent = 0): QWidget(parent){
+            _penColor = Qt::white;
             _color = Qt::blue;
             _drawing = false;
             _penWidth =25;
@@ -37,6 +38,7 @@ public slots:
     void showImage(const cv::Mat& image);
     void scaleImage(QSize size);
     void applyThreshold(int thresh);
+    void setPenColor(QColor c);
     void setColor(QColor c);
     void setWidth(int width);
     bool undo();
@@ -61,8 +63,7 @@ protected:
    int _penWidth;
    int _lastThresh;
    QColor _color;
-
-
+   QColor _penColor;
 
 };
 

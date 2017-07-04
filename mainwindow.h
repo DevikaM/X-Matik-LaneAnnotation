@@ -76,6 +76,8 @@ private slots:
 
     void on_FrameRateButton_clicked();
 
+    void on_brushColorButton_clicked();
+
 private:
     int _prevThreshVal;
     int _prevBrushVal;
