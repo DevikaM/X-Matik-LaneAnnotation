@@ -41,7 +41,9 @@ void FirstWindow::on_SubmitButton_clicked()
 
     if((topCrop > 260 || topCrop < 0) || (bottomCrop > 260 || bottomCrop < 0))
     {
-            //display alert()
+        QMessageBox messageBox;
+                    messageBox.critical(0,"Error","Crop values must be between 0 and 260");
+                    messageBox.setFixedSize(500,200);
            return;
     }
 
@@ -51,7 +53,15 @@ void FirstWindow::on_SubmitButton_clicked()
     else if(FileName.find("\\") == 0)
         FileName = FileName.substr(FileName.find_last_of("\\")+1, FileName.length() - FileName.find_last_of("\\"));
 
+    if(!QFile(QString::fromStdString(Path)).exists()){
+        QMessageBox messageBox;
+                    messageBox.critical(0,"Error","Video path not valid");
+                    messageBox.setFixedSize(500,200);
+           return;
+    }
+
     cv::VideoCapture video(Path);
+
     ui->textEdit->insertPlainText(QString::fromStdString("Loading: " + FileName + "\n"));
 
     int Frames = window->getFrames(video, frameRate, fileName, OutDir,topCrop,bottomCrop);
