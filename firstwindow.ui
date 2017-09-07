@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>627</width>
-    <height>414</height>
+    <width>621</width>
+    <height>483</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,7 +18,7 @@
     <property name="geometry">
      <rect>
       <x>80</x>
-      <y>260</y>
+      <y>331</y>
       <width>461</width>
       <height>101</height>
      </rect>
@@ -38,7 +38,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>60</y>
+      <y>62</y>
       <width>81</width>
       <height>16</height>
      </rect>
@@ -84,7 +84,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>195</y>
+      <y>266</y>
       <width>551</width>
       <height>66</height>
      </rect>
@@ -113,7 +113,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>90</y>
+      <y>95</y>
       <width>111</width>
       <height>16</height>
      </rect>
@@ -126,7 +126,7 @@
     <property name="geometry">
      <rect>
       <x>30</x>
-      <y>143</y>
+      <y>124</y>
       <width>60</width>
       <height>16</height>
      </rect>
@@ -139,7 +139,7 @@
     <property name="geometry">
      <rect>
       <x>170</x>
-      <y>143</y>
+      <y>121</y>
       <width>51</width>
       <height>20</height>
      </rect>
@@ -148,8 +148,8 @@
    <widget class="QLabel" name="label_6">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>171</y>
+      <x>31</x>
+      <y>154</y>
       <width>81</width>
       <height>16</height>
      </rect>
@@ -162,10 +162,97 @@
     <property name="geometry">
      <rect>
       <x>170</x>
-      <y>171</y>
+      <y>150</y>
       <width>51</width>
       <height>20</height>
      </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_7">
+    <property name="geometry">
+     <rect>
+      <x>31</x>
+      <y>219</y>
+      <width>60</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Shape</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_8">
+    <property name="geometry">
+     <rect>
+      <x>31</x>
+      <y>247</y>
+      <width>60</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Cursor</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="shapeComboBox">
+    <property name="geometry">
+     <rect>
+      <x>168</x>
+      <y>212</y>
+      <width>104</width>
+      <height>26</height>
+     </rect>
+    </property>
+    <property name="maxVisibleItems">
+     <number>4</number>
+    </property>
+    <property name="maxCount">
+     <number>10</number>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="cursorComboBox">
+    <property name="geometry">
+     <rect>
+      <x>168</x>
+      <y>241</y>
+      <width>104</width>
+      <height>26</height>
+     </rect>
+    </property>
+    <property name="maxVisibleItems">
+     <number>4</number>
+    </property>
+    <property name="maxCount">
+     <number>10</number>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_10">
+    <property name="geometry">
+     <rect>
+      <x>31</x>
+      <y>191</y>
+      <width>71</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Annotation</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="annotationComboBox">
+    <property name="geometry">
+     <rect>
+      <x>168</x>
+      <y>184</y>
+      <width>104</width>
+      <height>26</height>
+     </rect>
+    </property>
+    <property name="maxVisibleItems">
+     <number>4</number>
+    </property>
+    <property name="maxCount">
+     <number>10</number>
     </property>
    </widget>
   </widget>
@@ -174,7 +261,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>627</width>
+     <width>621</width>
      <height>22</height>
     </rect>
    </property>

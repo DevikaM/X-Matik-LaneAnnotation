@@ -8,14 +8,13 @@ FirstWindow::FirstWindow(QWidget *parent) :
     ui->setupUi(this);
     window = new MainWindow(this);
 
-/*
-    CVImage* imageWidget = new CVImage();
-    imageWidget->setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::WindowStaysOnTopHint | Qt::CustomizeWindowHint);
-    cv::Mat temp(500, 880, CV_8UC3, cv::Scalar(0,0,0));
-    imageWidget->showImage(temp);
-    window->setImage(imageWidget);
-    window->show();
-*/
+    for(auto const& annotation : Configuration::getAnnotation())
+        ui->annotationComboBox->addItem(QString::fromStdString(annotation.second), Qt::DisplayRole);
+    for(auto const& shape : Configuration::getShapes())
+        ui->shapeComboBox->addItem(QString::fromStdString(shape.second), Qt::DisplayRole);
+    for(auto const& cursor: Configuration::getCursors())
+        ui->cursorComboBox->addItem(QString::fromStdString(cursor.second), Qt::DisplayRole);
+
 }
 
 FirstWindow::~FirstWindow()
@@ -37,6 +36,9 @@ void FirstWindow::on_SubmitButton_clicked()
     int fileName = atoi((File).c_str());
     int topCrop = atoi((CropTop).c_str());
     int bottomCrop = atoi((CropBottom).c_str());
+    int annotation = ui->annotationComboBox->currentIndex();
+    int shape = ui->shapeComboBox->currentIndex();
+    int cursor = ui->cursorComboBox->currentIndex();
     std::string FileName = Path;
 
     if((topCrop > 260 || topCrop < 0) || (bottomCrop > 260 || bottomCrop < 0))
@@ -64,13 +66,16 @@ void FirstWindow::on_SubmitButton_clicked()
 
     ui->textEdit->insertPlainText(QString::fromStdString("Loading: " + FileName + "\n"));
 
+    window->configureWindow(annotation,shape, cursor);
     int Frames = window->getFrames(video, frameRate, fileName, OutDir,topCrop,bottomCrop);
-    CVImage* imageWidget = new CVImage();
-    imageWidget->setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::WindowStaysOnTopHint | Qt::CustomizeWindowHint);
-    cv::Mat temp(500, 880, CV_8UC3, cv::Scalar(0,0,0));
-    imageWidget->showImage(temp);
-    window->setImage(imageWidget);
     window->show();
     window->start();
+
     ui->textEdit->insertPlainText(QString::fromStdString(std::to_string(Frames) + " Frames Selected from " + FileName + "\n"));
+}
+
+void FirstWindow::on_annotationComboBox_currentIndexChanged(int index)
+{
+    ui->shapeComboBox->setCurrentIndex(index);
+    ui->cursorComboBox->setCurrentIndex(index);
 }

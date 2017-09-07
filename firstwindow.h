@@ -20,7 +20,10 @@
 #include "opencv2/opencv_modules.hpp"
 #include "mainwindow.h"
 #include "cvimage.h"
+#include "square.h"
+#include "configuration.h"
 #include <string>
+#include <map>
 
 namespace Ui {
 class FirstWindow;
@@ -37,9 +40,12 @@ public:
 private slots:
     void on_SubmitButton_clicked();
 
+    void on_annotationComboBox_currentIndexChanged(int index);
+
 private:
     Ui::FirstWindow *ui;
     MainWindow *window;
+
 };
 
 #endif // FIRSTWINDOW_H

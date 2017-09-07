@@ -13,12 +13,15 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     cvimage.cpp \
     firstwindow.cpp \
-    thresholdop.cpp
+    thresholdop.cpp \
+    square.cpp
 
 HEADERS  += mainwindow.h \
     cvimage.h \
     firstwindow.h \
-    thresholdop.h
+    thresholdop.h \
+    configuration.h \
+    square.h
 
 FORMS    += mainwindow.ui \
     firstwindow.ui

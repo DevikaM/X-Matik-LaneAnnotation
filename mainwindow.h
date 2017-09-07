@@ -13,7 +13,7 @@
 
 
 #include "cvimage.h"
-
+#include "square.h"
 #include "opencv2/opencv.hpp"
 #include "opencv2/core/core.hpp"
 #include "opencv2/features2d/features2d.hpp"
@@ -48,7 +48,8 @@ public:
     int getFrames(cv::VideoCapture vid, int frameRate, int fileName, std::string FilePath,int topCrop, int bottomCrop);
     void start();
     void closeWin();
-    void ResetWindow();
+    void resetWindow();
+    void configureWindow(int annotation ,int shape, int cursor);
 
 signals:
 
@@ -73,9 +74,7 @@ private slots:
     void increaseBrush();
     void decreaseBrush();
     void on_ResetButton_clicked();
-
     void on_FrameRateButton_clicked();
-
     void on_brushColorButton_clicked();
 
 private:
@@ -94,6 +93,10 @@ private:
     int _frameIndex;
     bool _release;
     int _frameRate;
+    int _annotation;
+    int _cursor;
+    int _shape;
+
 
 };
 

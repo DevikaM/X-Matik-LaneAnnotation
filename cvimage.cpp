@@ -34,6 +34,7 @@ void CVImage::showImage(const cv::Mat& image)
 
 }
 
+
 void CVImage::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
@@ -44,8 +45,7 @@ void CVImage::paintEvent(QPaintEvent *event)
 void CVImage::scaleImage(QSize size)
 {
     _qimage = _qimage.scaled(size, Qt::IgnoreAspectRatio,Qt::FastTransformation);
-    //this->setFixedSize(size.height(), size.width());
-    //repaint();
+
 }
 
 void CVImage::applyThreshold(int thresh)
@@ -62,14 +62,29 @@ void CVImage::mousePressEvent(QMouseEvent *event)
     _drawing = true;
     _prevPoint = event->pos();
     QRectF rect(event->pos().x() - (_penWidth/2 ), event->pos().y() - (_penWidth/2), _penWidth,_penWidth);
-    drawCircle(rect, true);
+    switch(_cursor) {
+        case 1:
+            drawCircle(rect, true);
+            break;
+        case 0:
+            _squares->push_back(Square(event->pos()));
+            break;
+    }
 }
 
 
 void CVImage::mouseMoveEvent(QMouseEvent *event)
 {
     if((event->buttons() & Qt::LeftButton) && _drawing)
-        drawTo(event->pos());
+        switch(_shape){
+        case 1:
+            drawTo(event->pos());
+            break;
+        case 0:
+            _qimage = _imgVec->back();
+            drawSquare(event->pos());
+            break;
+        }
     else if(event->pos().x() <= 20 ||
             event->pos().y() <= 3 ||
             event->pos().x() >= this->width()-1 ||
@@ -80,7 +95,6 @@ void CVImage::mouseMoveEvent(QMouseEvent *event)
         _qimage = _imgVec->back();
         QRectF rect(event->pos().x() - (_penWidth/2 ), event->pos().y() - (_penWidth/2), _penWidth,_penWidth);
         drawCursor(rect);
-
     }
 
 
@@ -89,7 +103,16 @@ void CVImage::mouseMoveEvent(QMouseEvent *event)
 void CVImage::mouseReleaseEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton && _drawing){
-        drawTo(event->pos());
+        switch(_shape){
+        case 1:
+             drawTo(event->pos());
+            break;
+        case 0:
+             drawSquare(event->pos());
+             _squares->back().setLast(event->pos());
+            break;
+        }
+
         _drawing = false;
         _imgVec->push_back(_qimage);
     }
@@ -107,8 +130,16 @@ void CVImage::drawTo(const QPoint &point)
 void CVImage::drawCursor(QRectF rect){
 
     QPainter painter(&_qimage);
-    painter.setPen(QPen(_penColor, 2, Qt::SolidLine, Qt::RoundCap,Qt::RoundJoin));
-    painter.drawEllipse(rect);
+    painter.setPen(QPen(_penColor,2, Qt::SolidLine, Qt::RoundCap,Qt::RoundJoin));
+    switch(_cursor){
+    case 0:
+        painter.drawLine(QPointF(rect.x(), rect.y() + rect.height()/2),QPointF(rect.x() + rect.width(), rect.y() + rect.height()/2));
+        painter.drawLine(QPointF(rect.x() + rect.width()/2, rect.y()), QPointF(rect.x() + rect.width()/2, rect.y() + rect.height()));
+        break;
+    case 1:
+        painter.drawEllipse(rect);
+        break;
+    }
     repaint();
 
 }
@@ -122,12 +153,50 @@ void CVImage::drawCircle(QRectF rect, bool onClick, bool cancelMove)
         this->_color = Qt::black;
     }
     QPainter painter(&_qimage);
-    painter.setPen(QPen(_color, 2, Qt::SolidLine, Qt::RoundCap,Qt::RoundJoin));
-    if(onClick) painter.setBrush(_color);
+    painter.setPen(QPen(_color, (onClick)? _penWidth : 2, Qt::SolidLine, Qt::RoundCap,Qt::RoundJoin));
     painter.drawEllipse(rect);
     repaint();
 
 }
+void CVImage::drawCross(QRectF rect, bool onClick, bool cancelMove)
+{
+    if(cancelMove)
+        this->setMouseTracking(false);
+    if(!onClick){
+        _imgVec->push_back(_qimage);
+        _qimage = _imgVec->front();
+        this->_color = Qt::black;
+    }
+    QPainter painter(&_qimage);
+    painter.setPen(QPen(_color, 2, Qt::SolidLine, Qt::RoundCap,Qt::RoundJoin));
+    painter.drawLine(QPointF(rect.x(), rect.y() + rect.height()/2),QPointF(rect.x() + rect.width(), rect.y() + rect.height()/2));
+    painter.drawLine(QPointF(rect.x() + rect.width()/2, rect.y()), QPointF(rect.x() + rect.width()/2, rect.y() + rect.height()));
+    repaint();
+}
+
+void CVImage::displayCursor(QRectF rect, bool onClick, bool cancelMove)
+{
+    switch(_cursor)
+    {
+        case 1:
+            drawCircle(rect,onClick,cancelMove);
+            break;
+        case 0:
+            drawCross(rect,onClick,cancelMove);
+            break;
+    }
+
+    repaint();
+}
+
+void CVImage::drawSquare(const QPoint &point)
+{
+    QPainter painter(&_qimage);
+    painter.setPen(QPen(_color, 2, Qt::SolidLine, Qt::RoundCap,Qt::RoundJoin));
+    painter.drawRect(QRect(_squares->back()._first, point));
+    repaint();
+}
+
 
 void CVImage::setColor(QColor color)
 {
@@ -142,24 +211,39 @@ void CVImage::setWidth(int width)
     _penWidth = width;
 }
 
+void CVImage::configure(int shape, int cursor){
+    _cursor = cursor;
+    _shape = shape;
+}
+
 void CVImage::reset()
 {
      _imgVec->clear();
      _qimage = QImage(_tmp.data, _tmp.cols, _tmp.rows, _tmp.cols*3, QImage::Format_RGB888);
      _imgVec->push_back(_qimage);
+     _squares->clear();
      repaint();
 }
 
 bool CVImage::undo()
 {
-    if(_imgVec->size() == 1)
+    if(_imgVec->size() == 1){
        _qimage = QImage(_tmp.data, _tmp.cols, _tmp.rows, _tmp.cols*3, QImage::Format_RGB888);
-    else{
+       //_imgVec->clear();
+       //_imgVec->push_back(_qimage);
+    }else{
+        switch(_shape)
+        {
+            case 0:
+                _squares->pop_back();
+            break;
+        }
         _qimage = _imgVec->back();
         _imgVec->pop_back();
     }
 
     repaint();
+
     return true;
 }
 
@@ -170,7 +254,6 @@ void CVImage::save(std::string filePath, bool raw)
     }else{
         QString path = QString::fromStdString(filePath);
         _imgVec->back().save(path);
-        //_qimage.save(path);
     }
 }
 

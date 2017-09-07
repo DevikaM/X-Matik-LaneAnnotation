@@ -64,31 +64,73 @@ MainWindow::MainWindow(QWidget *parent) :
     _frameIndex = 0;
     _release = false;
     _prevThreshVal = ui->thresholdBar->value();
-    _prevBrushVal = ui->penWidthBar->value();
+
+}
+void MainWindow::configureWindow(int annotation ,int shape, int cursor)
+{
+    _annotation = annotation;
+    _shape = shape;
+    _cursor = cursor;
+
+    CVImage* mainImageWidget = new CVImage();
+    mainImageWidget->setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::WindowStaysOnTopHint | Qt::CustomizeWindowHint);
+    cv::Mat tmp(500, 880, CV_8UC3, cv::Scalar(0,0,0));
+    mainImageWidget->configure(_shape, _cursor);
+    mainImageWidget->showImage(tmp);
+    this->setImage(mainImageWidget);
+
     CVImage* imageWidget = new CVImage();
     imageWidget->setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::WindowStaysOnTopHint | Qt::CustomizeWindowHint);
-    cv::Mat temp(130, 220, CV_8UC3, cv::Scalar(255,255,255));
+    cv::Mat temp(ui->brushSizeImage->height(), ui->brushSizeImage->width(), CV_8UC3, cv::Scalar(255,255,255));
     imageWidget->showImage(temp);
-    QRectF rect(110.0, 25.0, 25.0, 25.0);
-    imageWidget->drawCircle(rect,false,true);
-    ui->mdiArea_2->addSubWindow(imageWidget,Qt::FramelessWindowHint);
-    /*CANT BE USED WITH DYNAMIC FRAME RATE*/
+    imageWidget->configure(_shape, _cursor);
+    imageWidget->setMouseTracking(false);
+    QRectF rect((imageWidget->width()/2) - 25.0/2 , (imageWidget->height()/2) - 25.0/2 , 25.0, 25.0);
+    imageWidget->displayCursor(rect,false,true);
+    ui->brushSizeImage->addSubWindow(imageWidget,Qt::FramelessWindowHint);
+
+    switch(_annotation){
+        case 0:
+
+           ui->thresholdBar->hide();
+           ui->thresholdLabel->hide();
+           ui->WLabel->hide();
+           ui->DLabel->hide();
+           ui->ALabel->hide();
+           ui->SLabel->hide();
+           ui->penWidthBar->hide();
+           ui->BrushLabel->hide();
+            break;
+        case 1:
+           ui->thresholdBar->show();
+           ui->thresholdLabel->show();
+           ui->WLabel->show();
+           ui->DLabel->show();
+           ui->ALabel->show();
+           ui->SLabel->show();
+           ui->penWidthBar->show();
+           ui->BrushLabel->show();
+            break;
+    }
+
+
+    /*CAN'T BE USED WITH DYNAMIC FRAME RATE*/
     ui->seeNextButton->hide();
     ui->seePrevButton->hide();
 
+
 }
-
-
-void MainWindow::ResetWindow(){
+void MainWindow::resetWindow(){
 
     _vidFrames = new std::vector<cv::Mat>;
     _frameIndex = 0;
     _release = false;
-    _prevThreshVal = ui->thresholdBar->value();
-    _prevBrushVal = ui->penWidthBar->value();
+    if (_annotation == 1) {
+        _prevThreshVal = ui->thresholdBar->value();
+        _prevBrushVal = ui->penWidthBar->value();
+    }
 
 }
-
 void MainWindow::increaseThresh()
 {
     ui->thresholdBar->triggerAction(QAbstractSlider::SliderSingleStepAdd);
@@ -97,7 +139,6 @@ void MainWindow::decreaseThresh()
 {
     ui->thresholdBar->triggerAction(QAbstractSlider::SliderSingleStepSub);
 }
-
 void MainWindow::increaseBrush()
 {
     ui->penWidthBar->triggerAction(QAbstractSlider::SliderSingleStepAdd);
@@ -108,7 +149,7 @@ void MainWindow::decreaseBrush()
 }
 int MainWindow::getFrames(cv::VideoCapture vid, int frameRate, int fileName,std::string FilePath,int topCrop, int bottomCrop)
 {
-    this->ResetWindow();
+    this->resetWindow();
     _fileName = fileName;
     _filePath = FilePath;
     _frameRate = frameRate;
@@ -145,24 +186,9 @@ int MainWindow::getFrames(cv::VideoCapture vid, int frameRate, int fileName,std:
         try
         {
             int totalVidFrame = (int) vid.get(CV_CAP_PROP_FRAME_COUNT);
-            //int grabFrame = 0;
 
             for(int frameIndex = 0; frameIndex < totalVidFrame; frameIndex++)
             {
-               /* if(grabFrame == 0)
-                {
-                    cv::Mat tempFrame;
-                    vid.set(cv::CAP_PROP_POS_FRAMES, frameIndex);
-                    vid.grab();
-                    vid.retrieve(tempFrame);
-                    _vidFrames->push_back(tempFrame);
-                    fileName++;
-                }else if(grabFrame == frameRate)
-                {
-                    grabFrame = -1;
-                }
-                grabFrame++;*/
-
                 cv::Mat tempFrame, cropped;
                 vid.set(cv::CAP_PROP_POS_FRAMES, frameIndex);
                 vid.grab();
@@ -187,26 +213,21 @@ int MainWindow::getFrames(cv::VideoCapture vid, int frameRate, int fileName,std:
     return fileName;
 
 }
-
 void MainWindow::start()
 {
     CVImage* image = (CVImage*) ui->mdiArea->activeSubWindow()->widget();
     image->showImage(_vidFrames->at(_frameIndex));
-    //_frameIndex++;
-    //_frameIndex+=_frameRate;
     ui->mdiArea->activeSubWindow()->setWidget(image);
-}
 
+}
 void MainWindow::setImage(CVImage *img)
 {
     ui->mdiArea->addSubWindow(img,Qt::FramelessWindowHint);
 }
-
 MainWindow::~MainWindow()
 {
     delete ui;
 }
-
 void MainWindow::on_thresholdBar_sliderMoved(int position)
 {
     CVImage* temp = (CVImage*) ui->mdiArea->activeSubWindow()->widget();
@@ -214,19 +235,17 @@ void MainWindow::on_thresholdBar_sliderMoved(int position)
     ui->mdiArea->activeSubWindow()->setWidget(temp);
     _prevThreshVal = ui->thresholdBar->value();
 }
-
 void MainWindow::on_penWidthBar_sliderMoved(int position)
 {
     CVImage* temp = (CVImage*) ui->mdiArea->activeSubWindow()->widget();
     temp->setWidth(position);
     ui->mdiArea->activeSubWindow()->setWidget(temp);
-    temp = (CVImage*) ui->mdiArea_2->activeSubWindow()->widget();
-    QRectF rect(110.0, 25.0, position, position);
-    temp->drawCircle(rect);
-    ui->mdiArea_2->activeSubWindow()->setWidget(temp);
+    temp = (CVImage*) ui->brushSizeImage->activeSubWindow()->widget();
+    QRectF rect(( ui->brushSizeImage->width()/2) - 25.0/2 , ( ui->brushSizeImage->height()/2) - 25.0/2 , position, position);
+    temp->displayCursor(rect,false,true);
+    ui->brushSizeImage->activeSubWindow()->setWidget(temp);
     _prevBrushVal = ui->penWidthBar->value();
 }
-
 void MainWindow::on_penColorButton_clicked()
 {
      QColor newColor = QColorDialog::getColor();
@@ -234,13 +253,11 @@ void MainWindow::on_penColorButton_clicked()
      temp->setColor(newColor);
      ui->mdiArea->activeSubWindow()->setWidget(temp);
 }
-
 void MainWindow::on_undoButton_clicked()
 {
  CVImage* temp = (CVImage*) ui->mdiArea->activeSubWindow()->widget();
  temp->undo();
 }
-
 void MainWindow::on_saveButton_clicked()
 {
 
@@ -254,7 +271,15 @@ void MainWindow::on_saveButton_clicked()
     raw.open(_rawTextFile, std::fstream::app | std::fstream::out );
 
     std::string fullFilePath = QDir(QString::fromStdString(_posFilePath)).filePath(QString::fromStdString(std::to_string(_fileName) + "p.png")).toStdString();
-    pos << (QDir("pos").filePath(QString::fromStdString(std::to_string(_fileName)) + "p.png\n")).toStdString();
+    pos << (QDir("pos").filePath(QString::fromStdString(std::to_string(_fileName)) + "p.png")).toStdString();
+    switch(_shape)
+    {
+        case 0:
+            for(Square s : *temp->_squares)
+                pos << " "<< s.print() << " ";
+            break;
+    }
+    pos << "\n";
 
     temp->save(fullFilePath);
 
@@ -276,21 +301,25 @@ void MainWindow::on_saveButton_clicked()
     {
         _frameIndex+=_frameRate;
          temp->showImage(_vidFrames->at(_frameIndex));
+         temp->_squares->clear();
          ui->mdiArea->activeSubWindow()->setWidget(temp);
          if (ui->thresholdBar->value() > 1)
              this->on_thresholdBar_sliderMoved(ui->thresholdBar->value());
      }
-    else{
+    else
+    {
         cv::Mat tempMat(500, 880, CV_8UC3, cv::Scalar(0,0,0));
         temp->showImage(tempMat);
         ui->mdiArea->activeSubWindow()->setWidget(temp);
+        CVImage* cursorDisplay = (CVImage*) ui->brushSizeImage->activeSubWindow()->widget();
+        tempMat = cv::Mat(ui->brushSizeImage->height(), ui->brushSizeImage->width(), CV_8UC3, cv::Scalar(255,255,255));
+        cursorDisplay->showImage(tempMat);
         this->close();
     }
     pos.close();
     raw.close();
 
 }
-
 void MainWindow::on_skipButton_clicked()
 {
     CVImage* temp = (CVImage*) ui->mdiArea->activeSubWindow()->widget();
@@ -298,21 +327,23 @@ void MainWindow::on_skipButton_clicked()
     {
         _frameIndex+=_frameRate;
          temp->showImage(_vidFrames->at(_frameIndex));
-         //_frameIndex++;
-         //_vidFrames->erase(_vidFrames->begin());
+         temp->_squares->clear();
          ui->mdiArea->activeSubWindow()->setWidget(temp);
          if (ui->thresholdBar->value() > 1)
              this->on_thresholdBar_sliderMoved(ui->thresholdBar->value());
      }
-    else{
+    else
+    {
         cv::Mat tempMat(500, 880, CV_8UC3, cv::Scalar(0,0,0));
         temp->showImage(tempMat);
         ui->mdiArea->activeSubWindow()->setWidget(temp);
+        CVImage* cursorDisplay = (CVImage*) ui->brushSizeImage->activeSubWindow()->widget();
+        tempMat = cv::Mat(ui->brushSizeImage->height(), ui->brushSizeImage->width(), CV_8UC3, cv::Scalar(255,255,255));
+        cursorDisplay->showImage(tempMat);
         this->close();
     }
 
 }
-
 //NEG BUTTON
 void MainWindow::on_saveButton_2_clicked()
 {
@@ -351,22 +382,21 @@ void MainWindow::on_saveButton_2_clicked()
     {
         _frameIndex+=_frameRate;
          temp->showImage(_vidFrames->at(_frameIndex));
-         //_frameIndex++;
-         //_vidFrames->erase(_vidFrames->begin());
+         temp->_squares->clear();
          ui->mdiArea->activeSubWindow()->setWidget(temp);
          if (ui->thresholdBar->value() > 1)
              this->on_thresholdBar_sliderMoved(ui->thresholdBar->value());
-
      }
-    else{
+    else
+    {
         cv::Mat tempMat(500, 880, CV_8UC3, cv::Scalar(0,0,0));
         temp->showImage(tempMat);
         ui->mdiArea->activeSubWindow()->setWidget(temp);
+        CVImage* cursorDisplay = (CVImage*) ui->brushSizeImage->activeSubWindow()->widget();
+        tempMat = cv::Mat(ui->brushSizeImage->height(), ui->brushSizeImage->width(), CV_8UC3, cv::Scalar(255,255,255));
+        cursorDisplay->showImage(tempMat);
         this->close();
     }
-
-    //ui->thresholdBar->setValue(1);
-
 }
 void MainWindow::on_pooButton_clicked()
 {
@@ -376,14 +406,12 @@ void MainWindow::on_pooButton_clicked()
             cv::Mat tmpFrame = temp->_tmpRaw, colorFrame;
             cv::applyColorMap(tmpFrame, colorFrame, cv::COLORMAP_RAINBOW);
             cv::namedWindow("image", cv::WINDOW_AUTOSIZE);
-           // cv::resizeWindow("image", 200,400);
             cv::imshow("image",colorFrame);
             cv::waitKey(1);
             _release = true;
         }
     }else {
         cvDestroyAllWindows();
-
         _release = false;
     }
 }
@@ -392,14 +420,9 @@ void MainWindow::on_seeRawButton_clicked()
     if(!_release){
         if(_vidFrames->size() >=  1 && _frameIndex >= 1){
             CVImage* temp = (CVImage*) ui->mdiArea->activeSubWindow()->widget();
-
-            //CVImage img;
-            //temp->showImage(temp->_tmpRaw);
-            //temp->show();
-            cv::Mat tmpFrame;// = temp->_tmpRaw;
+            cv::Mat tmpFrame;
             cv::resize(temp->_tmpRaw, tmpFrame, cv::Size(800,500));
             cv::namedWindow("raw", cv::WINDOW_KEEPRATIO);
-            //cv::resizeWindow("raw", 50,30);
             cv::imshow("raw",tmpFrame);
             cv::waitKey(1);
             _release = true;
@@ -417,7 +440,6 @@ void MainWindow::on_seeNextButton_clicked()
             CVImage* temp = (CVImage*) ui->mdiArea->activeSubWindow()->widget();
             cv::Mat tmpFrame = _vidFrames->at(_frameIndex+1);
             cv::namedWindow("image", cv::WINDOW_AUTOSIZE);
-           // cv::resizeWindow("image", 200,400);
             cv::imshow("image",tmpFrame);
             cv::waitKey(1);
             _release = true;
@@ -437,7 +459,6 @@ void MainWindow::on_seePrevButton_clicked()
         CVImage* temp = (CVImage*) ui->mdiArea->activeSubWindow()->widget();
         cv::Mat tmpFrame = _vidFrames->at(_frameIndex-1);
         cv::namedWindow("image", cv::WINDOW_AUTOSIZE);
-        //cv::resizeWindow("image", 200,400);
         cv::imshow("image",tmpFrame);
         cv::waitKey(1);
         _release = true;
@@ -452,20 +473,17 @@ void MainWindow::on_thresholdBar_valueChanged(int value)
     on_thresholdBar_sliderMoved(value);
    _prevThreshVal = ui->thresholdBar->value();
 }
-
 void MainWindow::on_penWidthBar_valueChanged(int value)
 {
     on_penWidthBar_sliderMoved(value);
     _prevBrushVal = ui->penWidthBar->value();
 }
-
 void MainWindow::on_ResetButton_clicked()
 {
     CVImage* temp = (CVImage*) ui->mdiArea->activeSubWindow()->widget();
     temp->reset();
     ui->mdiArea->activeSubWindow()->setWidget(temp);
 }
-
 void MainWindow::on_FrameRateButton_clicked()
 {
     if (ui->FrameRateTextBox->text().toStdString() != "")

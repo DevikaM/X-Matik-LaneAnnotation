@@ -13,8 +13,10 @@
 #include <QList>
 #include <QBrush>
 #include "thresholdop.h"
+#include "square.h"
 #include <vector>
 #include <iostream>
+
 class CVImage : public QWidget
 {
     Q_OBJECT
@@ -26,12 +28,14 @@ public:
             _penWidth =25;
             _lastThresh = 0;
             _imgVec= new std::vector<QImage>;
+            _squares = new std::vector<Square>;
             setMouseTracking(true);
     }
 
     QSize sizeHint() const;
     QSize minimumSizeHint() const;
     cv::Mat _tmpRaw;
+    std::vector<Square>* _squares;
 
 
 public slots:
@@ -44,15 +48,21 @@ public slots:
     bool undo();
     void save(std::string filePath, bool raw = false);
     void saveNeg(std::string filePath);
-    void drawCircle(QRectF rect, bool onClick = false, bool cancelMove = false);
     void drawCursor(QRectF rect);
+    void displayCursor(QRectF rect, bool onClick = false, bool cancelMove = false);
+    void drawCircle(QRectF rect, bool onClick = false, bool cancelMove = false);
+    void drawCross(QRectF rect, bool onClick = false, bool cancelMove = false);
     void reset();
+    void configure(int shape, int cursor);
+
+
 protected:
    void paintEvent(QPaintEvent* e);
    void mousePressEvent(QMouseEvent *event) override;
    void mouseMoveEvent(QMouseEvent *event) override;
    void mouseReleaseEvent(QMouseEvent *event) override;
    void drawTo(const QPoint &point);
+   void drawSquare(const QPoint &point);
 
    std::vector<QImage> *_imgVec;
    QImage _qimage;
@@ -64,6 +74,9 @@ protected:
    int _lastThresh;
    QColor _color;
    QColor _penColor;
+   int _cursor;
+   int _shape;
+
 
 };
 
