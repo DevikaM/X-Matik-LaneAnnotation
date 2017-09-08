@@ -286,10 +286,10 @@ void MainWindow::on_saveButton_clicked()
     {
         case 0:
             {
-                std::string squares = " " + temp->getSquares();
+                std::string squares = temp->printSquares();//" " + temp->_squares->size();
 
-                for(Square s : *temp->_squares)
-                    squares += " "+ s.print() + " ";
+                /*f/*or(Square s : *temp->_squares)
+                    squares += " "+ s.print() + " ";*/
                 pos << squares;
                 raw << squares;
             }

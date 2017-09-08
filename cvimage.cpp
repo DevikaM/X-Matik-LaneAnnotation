@@ -312,3 +312,15 @@ void CVImage::saveBox(std::string filePath)
 int CVImage::getSquares(){
     return _squares->size();
 }
+
+std::string CVImage::printSquares(){
+    //this is cursed
+    //std::string ret = " " + *_squares->size();
+    std::string ret;
+    int a = 0;
+    for(Square s : *_squares){
+        ret += " "+ s.print() + " ";
+        a++;
+    }
+    return " " + std::to_string(a) + " " + ret;
+}

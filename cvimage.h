@@ -48,6 +48,7 @@ public slots:
     void setWidth(int width);
     bool undo();
     void saveBox(std::string filePath);
+    std::string printSquares();
     void save(std::string filePath, bool raw = false);
     void saveNeg(std::string filePath);
     void drawCursor(QRectF rect);
