@@ -23,18 +23,12 @@ void CVImage::showImage(const cv::Mat& image)
     }
 
     cvtColor(_tmp,_tmpGray, CV_RGB2GRAY);
-    cvtColor(_tmpGray, _tmp, CV_GRAY2RGB);
+    if(_shape == 1)
+        cvtColor(_tmpGray, _tmp, CV_GRAY2RGB);
 
-
+    _qimage = QImage(_tmp.data, _tmp.cols, _tmp.rows, _tmp.cols*3, QImage::Format_RGB888);
     assert(_tmp.isContinuous());
-    switch(_shape){
-        case 1:
-           _qimage = QImage(_tmp.data, _tmp.cols, _tmp.rows, _tmp.cols*3, QImage::Format_RGB888);
-            break;
-        case 0:
-            _qimage = QImage(_tmpRaw.data, _tmpRaw.cols, _tmpRaw.rows, _tmpRaw.cols*3, QImage::Format_RGB888);
-            break;
-    }
+
     this->setFixedSize(image.cols, image.rows);
     repaint();
     _imgVec->push_back(_qimage);
@@ -101,28 +95,50 @@ void CVImage::mousePressEvent(QMouseEvent *event)
 
 void CVImage::mouseMoveEvent(QMouseEvent *event)
 {
-    if((event->buttons() & Qt::LeftButton) && _drawing)
-        switch(_shape){
-        case 1:
-            drawTo(event->pos());
-            break;
-        case 0:
-            //to enable dragging function
-            //_qimage = _imgVec->back();
-            //drawSquare(event->pos());
-            break;
-        }
-    else if(event->pos().x() <= 20 ||
-            event->pos().y() <= 3 ||
-            event->pos().x() >= this->width()-1 ||
-            event->pos().y() >= this->height()-1)
-        _qimage = _imgVec->back();
-    else if(!_drawing)
+    switch(_shape){
+    case 1:
     {
-        _qimage = _imgVec->back();
-        QRectF rect(event->pos().x() - (_penWidth/2 ), event->pos().y() - (_penWidth/2), _penWidth,_penWidth);
-        drawCursor(rect);
+        if((event->buttons() & Qt::LeftButton) && _drawing)
+            drawTo(event->pos());
+        else if(event->pos().x() <= 20 ||
+                event->pos().y() <= 3 ||
+                event->pos().x() >= this->width()-1 ||
+                event->pos().y() >= this->height()-1)
+            _qimage = _imgVec->back();
+        else if(!_drawing)
+        {
+            _qimage = _imgVec->back();
+            QRectF rect(event->pos().x() - (_penWidth/2 ), event->pos().y() - (_penWidth/2), _penWidth,_penWidth);
+            drawCursor(rect);
+        }
     }
+        break;
+    case 0:
+        {
+       /* if((event->buttons() & Qt::LeftButton) && _drawing)
+            drawTo(event->pos());
+        else if(event->pos().x() <= 20 ||
+                event->pos().y() <= 3 ||
+                event->pos().x() >= this->width()-1 ||
+                event->pos().y() >= this->height()-1)
+            _qimage = _imgVec->back();
+        else if(!_drawing)
+        {*/
+
+            _qimage = _imgVec->back();
+            QRectF rect(event->pos().x() - (_penWidth/2 ), event->pos().y() - (_penWidth/2), _penWidth,_penWidth);
+            if(_drawing)
+                 drawSquare(event->pos());
+
+            drawCursor(rect);
+        //}
+        }
+        //to enable dragging function
+        //_qimage = _imgVec->back();
+        //drawSquare(event->pos());
+        break;
+    }
+
 
 
 }
@@ -298,7 +314,7 @@ void CVImage::saveNeg(std::string filePath)
 void CVImage::saveBox(std::string filePath)
 {
     //cv::Mat temp(_qimage->height(), _qimage->width(), CV_8UC3, cv::Scalar(255,255,255));
-    QImage img = QImage(_qimage.height(), _qimage.width(),QImage::Format_RGB32);//QImage(temp.data, temp.cols, temp.rows, temp.cols*3, QImage::Format_RGB888);
+    QImage img = QImage(_qimage.width(), _qimage.height(),QImage::Format_RGB32);//QImage(temp.data, temp.cols, temp.rows, temp.cols*3, QImage::Format_RGB888);
     img.fill(Qt::black);
     QPainter painter(&img);
     painter.setBrush(Qt::white);
