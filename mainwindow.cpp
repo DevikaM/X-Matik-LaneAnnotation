@@ -98,8 +98,8 @@ void MainWindow::configureWindow(int annotation ,int shape, int cursor)
            ui->DLabel->hide();
            ui->ALabel->hide();
            ui->SLabel->hide();
-           ui->penWidthBar->hide();
-           ui->BrushLabel->hide();
+           //ui->penWidthBar->hide();
+           //ui->BrushLabel->hide();
             break;
         case 1:
            ui->thresholdBar->show();
@@ -108,8 +108,8 @@ void MainWindow::configureWindow(int annotation ,int shape, int cursor)
            ui->DLabel->show();
            ui->ALabel->show();
            ui->SLabel->show();
-           ui->penWidthBar->show();
-           ui->BrushLabel->show();
+           //ui->penWidthBar->show();
+           //ui->BrushLabel->show();
             break;
     }
 
@@ -169,6 +169,12 @@ int MainWindow::getFrames(cv::VideoCapture vid, int frameRate, int fileName,std:
     _posTextFile = (QDir(QString::fromStdString(_posFilePath)).filePath("pos.txt")).toStdString();
     _negTextFile = (QDir(QString::fromStdString(_negFilePath)).filePath("neg.txt")).toStdString();
     _rawTextFile = (QDir(QString::fromStdString(_rawFilePath)).filePath("raw.txt")).toStdString();
+
+    if(_annotation == 0){
+        _boxFilePath = QDir::cleanPath(QString::fromStdString(FilePath) + QDir::separator() + "box").toStdString();
+        if(!QDir(QString::fromStdString(_boxFilePath)).exists())
+            QDir(QString::fromStdString(_boxFilePath)).mkpath(".");
+    }
 
     /* FOR OSX
     _posTextFile = FilePath + "/pos.txt";
@@ -270,29 +276,34 @@ void MainWindow::on_saveButton_clicked()
     std::fstream raw;
     raw.open(_rawTextFile, std::fstream::app | std::fstream::out );
 
-    std::string fullFilePath = QDir(QString::fromStdString(_posFilePath)).filePath(QString::fromStdString(std::to_string(_fileName) + "p.png")).toStdString();
+    //std::string fullFilePath = QDir(QString::fromStdString(_posFilePath)).filePath(QString::fromStdString(std::to_string(_fileName) + "p.png")).toStdString();
+   // std::string rawFilePath = QDir(QString::fromStdString(_rawFilePath)).filePath(QString::fromStdString(std::to_string(_fileName) + "r.png")).toStdString();
+
     pos << (QDir("pos").filePath(QString::fromStdString(std::to_string(_fileName)) + "p.png")).toStdString();
+    raw << (QDir("raw").filePath(QString::fromStdString(std::to_string(_fileName)) + "r.png")).toStdString();
+
     switch(_shape)
     {
         case 0:
-            for(Square s : *temp->_squares)
-                pos << " "<< s.print() << " ";
+            {
+                std::string squares = " " + temp->getSquares();
+
+                for(Square s : *temp->_squares)
+                    squares += " "+ s.print() + " ";
+                pos << squares;
+                raw << squares;
+            }
             break;
+
     }
+
     pos << "\n";
+    raw << "\n";
 
-    temp->save(fullFilePath);
+    temp->save(QDir(QString::fromStdString(_posFilePath)).filePath(QString::fromStdString(std::to_string(_fileName) + "p.png")).toStdString());
+    temp->save(QDir(QString::fromStdString(_rawFilePath)).filePath(QString::fromStdString(std::to_string(_fileName) + "r.png")).toStdString(),true);
+    temp->saveBox(QDir(QString::fromStdString(_boxFilePath)).filePath(QString::fromStdString(std::to_string(_fileName) + "b.png")).toStdString());
 
-    fullFilePath = QDir(QString::fromStdString(_rawFilePath)).filePath(QString::fromStdString(std::to_string(_fileName) + "r.png")).toStdString();
-    raw << (QDir("raw").filePath(QString::fromStdString(std::to_string(_fileName)) + "r.png\n")).toStdString();
-
-    temp->save(fullFilePath,true);
-
-    //std::string fullFilePath = _filePath + "/pos/" + std::to_string(_fileName) + "p.png";
-    //pos << "pos/" + std::to_string(_fileName) + "p.png\r";
-
-    //std::string fullFilePath = filePath + "\\pos\\" + std::to_string(_fileName) + "p.png";
-    //pos << "pos\\" + std::to_string(_fileName) + "p.png";
     /*********************************/
 
     _fileName++;
@@ -359,21 +370,18 @@ void MainWindow::on_saveButton_2_clicked()
     std::string fullFilePath = QDir(QString::fromStdString(_negFilePath)).filePath(QString::fromStdString(std::to_string(_fileName) + "n.png")).toStdString();
     neg << (QDir("neg").filePath(QString::fromStdString(std::to_string(_fileName)) + "n.png\n")).toStdString();
 
-    temp->saveNeg(fullFilePath);
+    //temp->saveNeg(fullFilePath);
+    temp->save(fullFilePath,true);
 
     fullFilePath = QDir(QString::fromStdString(_rawFilePath)).filePath(QString::fromStdString(std::to_string(_fileName) + "r.png")).toStdString();
     raw << (QDir("raw").filePath(QString::fromStdString(std::to_string(_fileName)) + "r.png\n")).toStdString();
 
     temp->save(fullFilePath,true);
+    temp->saveBox(QDir(QString::fromStdString(_boxFilePath)).filePath(QString::fromStdString(std::to_string(_fileName) + "b.png")).toStdString());
 
     neg.close();
     raw.close();
 
-    //std::string fullFilePath = _filePath + "/neg/" + std::to_string(_fileName) + "n.png";
-    // neg << "neg/" + std::to_string(_fileName) + "n.png\r";
-
-    //std::string fullFilePath = filePath + "\\neg\\" + std::to_string(_fileName) + "n.png";
-    //pos << "neg\\" + std::to_string(_fileName) + "n.png";
     /*********************************/
 
     _fileName++;
@@ -432,6 +440,7 @@ void MainWindow::on_seeRawButton_clicked()
         _release = false;
     }
 }
+
 /*CANT BE USED WITH DYNAMIC FRAME RATE*/
 void MainWindow::on_seeNextButton_clicked()
 {
@@ -489,7 +498,6 @@ void MainWindow::on_FrameRateButton_clicked()
     if (ui->FrameRateTextBox->text().toStdString() != "")
         _frameRate = atoi((ui->FrameRateTextBox->text().toStdString()).c_str());
 }
-
 void MainWindow::on_brushColorButton_clicked()
 {
     QColor newColor = QColorDialog::getColor();

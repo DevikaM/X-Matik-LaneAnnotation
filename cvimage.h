@@ -34,6 +34,7 @@ public:
 
     QSize sizeHint() const;
     QSize minimumSizeHint() const;
+    int getSquares();
     cv::Mat _tmpRaw;
     std::vector<Square>* _squares;
 
@@ -46,6 +47,7 @@ public slots:
     void setColor(QColor c);
     void setWidth(int width);
     bool undo();
+    void saveBox(std::string filePath);
     void save(std::string filePath, bool raw = false);
     void saveNeg(std::string filePath);
     void drawCursor(QRectF rect);

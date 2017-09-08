@@ -86,6 +86,7 @@ private:
     std::string _rawFilePath;
     std::string _posFilePath;
     std::string _negFilePath;
+    std::string _boxFilePath;
     std::string _posTextFile;
     std::string _negTextFile;
     std::string _rawTextFile;

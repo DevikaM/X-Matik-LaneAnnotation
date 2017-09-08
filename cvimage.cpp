@@ -27,7 +27,14 @@ void CVImage::showImage(const cv::Mat& image)
 
 
     assert(_tmp.isContinuous());
-    _qimage = QImage(_tmp.data, _tmp.cols, _tmp.rows, _tmp.cols*3, QImage::Format_RGB888);
+    switch(_shape){
+        case 1:
+           _qimage = QImage(_tmp.data, _tmp.cols, _tmp.rows, _tmp.cols*3, QImage::Format_RGB888);
+            break;
+        case 0:
+            _qimage = QImage(_tmpRaw.data, _tmpRaw.cols, _tmpRaw.rows, _tmpRaw.cols*3, QImage::Format_RGB888);
+            break;
+    }
     this->setFixedSize(image.cols, image.rows);
     repaint();
     _imgVec->push_back(_qimage);
@@ -59,17 +66,36 @@ void CVImage::applyThreshold(int thresh)
 
 void CVImage::mousePressEvent(QMouseEvent *event)
 {
-    _drawing = true;
-    _prevPoint = event->pos();
-    QRectF rect(event->pos().x() - (_penWidth/2 ), event->pos().y() - (_penWidth/2), _penWidth,_penWidth);
+     //_imgVec->push_back(_qimage);
+
     switch(_cursor) {
         case 1:
+            {
+            _drawing = true;
+            _prevPoint = event->pos();
+            QRectF rect(event->pos().x() - (_penWidth/2 ), event->pos().y() - (_penWidth/2), _penWidth,_penWidth);
             drawCircle(rect, true);
             break;
+
+            }
         case 0:
-            _squares->push_back(Square(event->pos()));
+            if(_drawing){
+                _qimage = _imgVec->back();
+                drawSquare(event->pos());
+                _squares->back().setLast(event->pos());
+                _drawing = false;
+                _imgVec->push_back(_qimage);
+            }
+            else if(!_drawing)
+            {
+                _squares->push_back(Square(event->pos()));
+                _drawing = true;
+            }
             break;
     }
+
+
+
 }
 
 
@@ -81,8 +107,9 @@ void CVImage::mouseMoveEvent(QMouseEvent *event)
             drawTo(event->pos());
             break;
         case 0:
-            _qimage = _imgVec->back();
-            drawSquare(event->pos());
+            //to enable dragging function
+            //_qimage = _imgVec->back();
+            //drawSquare(event->pos());
             break;
         }
     else if(event->pos().x() <= 20 ||
@@ -106,15 +133,17 @@ void CVImage::mouseReleaseEvent(QMouseEvent *event)
         switch(_shape){
         case 1:
              drawTo(event->pos());
+             _drawing = false;
+             _imgVec->push_back(_qimage);
             break;
         case 0:
-             drawSquare(event->pos());
-             _squares->back().setLast(event->pos());
+             //drawSquare(event->pos());
+             //_squares->back().setLast(event->pos());
             break;
         }
 
-        _drawing = false;
-        _imgVec->push_back(_qimage);
+
+
     }
 
 }
@@ -152,8 +181,12 @@ void CVImage::drawCircle(QRectF rect, bool onClick, bool cancelMove)
         _qimage = _imgVec->front();
         this->_color = Qt::black;
     }
+
+
     QPainter painter(&_qimage);
-    painter.setPen(QPen(_color, (onClick)? _penWidth : 2, Qt::SolidLine, Qt::RoundCap,Qt::RoundJoin));
+    painter.setPen(QPen(_color, /*(onClick)? 10 :*/ 2, Qt::SolidLine, Qt::RoundCap,Qt::RoundJoin));
+    if(onClick)
+            painter.setBrush(QBrush(_color));
     painter.drawEllipse(rect);
     repaint();
 
@@ -210,12 +243,10 @@ void CVImage::setWidth(int width)
 {
     _penWidth = width;
 }
-
 void CVImage::configure(int shape, int cursor){
     _cursor = cursor;
     _shape = shape;
 }
-
 void CVImage::reset()
 {
      _imgVec->clear();
@@ -261,4 +292,23 @@ void CVImage::saveNeg(std::string filePath)
 {
     cv::Mat temp(_tmp.rows,_tmp.cols, CV_8UC3, cv::Scalar(0,0,0));
     cv::imwrite(filePath,temp);
+}
+
+
+void CVImage::saveBox(std::string filePath)
+{
+    //cv::Mat temp(_qimage->height(), _qimage->width(), CV_8UC3, cv::Scalar(255,255,255));
+    QImage img = QImage(_qimage.height(), _qimage.width(),QImage::Format_RGB32);//QImage(temp.data, temp.cols, temp.rows, temp.cols*3, QImage::Format_RGB888);
+    img.fill(Qt::black);
+    QPainter painter(&img);
+    painter.setBrush(Qt::white);
+    painter.setPen(QPen(Qt::white, 2, Qt::SolidLine, Qt::RoundCap,Qt::RoundJoin));
+    for(Square s: *_squares)
+        painter.drawRect(QRect(s._first, s._second));
+    repaint();
+    img.save(QString::fromStdString(filePath));
+}
+
+int CVImage::getSquares(){
+    return _squares->size();
 }
